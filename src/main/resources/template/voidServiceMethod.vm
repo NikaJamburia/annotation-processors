@@ -1,0 +1,3 @@
+public ${returnType} ${methodName}(${params}) {
+    callService().${methodName}(${paramsWithoutTypes});
+}

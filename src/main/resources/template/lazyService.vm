@@ -1,0 +1,20 @@
+package $packageName;
+
+import java.time.LocalDate;
+import java.util.List;
+
+public class Lazy${serviceName} extends $serviceName {
+    public $serviceName encapsulatedService;
+
+    private $serviceName callService() {
+        if (encapsulatedService == null) {
+            this.encapsulatedService = new ${serviceName}();
+            return this.encapsulatedService;
+        }
+        else {
+            return encapsulatedService;
+        }
+    }
+
+    $overridenMethods
+}

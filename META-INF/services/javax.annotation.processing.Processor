@@ -1,0 +1,3 @@
+com.nika.annotations.framework.processor.JpaEmbeddedProcessor
+com.nika.annotations.framework.processor.LazyAnnotationProcessor
+com.nika.annotations.framework.processor.InjectedServiceAnnotationProcessor
