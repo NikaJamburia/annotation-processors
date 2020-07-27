@@ -2,6 +2,7 @@ package $packageName;
 
 import java.time.LocalDate;
 import java.util.List;
+import com.nika.annotations.framework.event.LazyServiceActivated;
 
 public class Lazy${serviceName} extends $serviceName {
     public $serviceName encapsulatedService;
@@ -9,6 +10,7 @@ public class Lazy${serviceName} extends $serviceName {
     private $serviceName callService() {
         if (encapsulatedService == null) {
             this.encapsulatedService = new ${serviceName}();
+            new LazyServiceActivated(encapsulatedService).publish();
             return this.encapsulatedService;
         }
         else {

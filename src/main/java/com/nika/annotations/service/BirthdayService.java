@@ -2,11 +2,13 @@ package com.nika.annotations.service;
 
 
 import com.nika.annotations.entity.User;
+import com.nika.annotations.framework.annotation.Lazy;
 import com.nika.annotations.framework.annotation.Service;
 
 import java.time.LocalDate;
 import java.util.List;
 
+@Lazy
 @Service(name = "birthday")
 public class BirthdayService {
     // TODO: Figure out how to inject fields from context to lazy services

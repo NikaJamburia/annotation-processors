@@ -28,7 +28,6 @@ public class InjectedServiceAnnotationProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnvironment) {
-//        checkInjectedServicesForSetters(roundEnvironment.getElementsAnnotatedWith(Service.class));
         Set<? extends Element> fieldsWithServiceAnnotation = findFieldsWithServiceAnnotation(roundEnvironment);
 
         checkIfInjectionsAreInServices(fieldsWithServiceAnnotation);

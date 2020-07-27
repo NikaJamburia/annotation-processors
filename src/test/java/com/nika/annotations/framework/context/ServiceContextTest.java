@@ -7,6 +7,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 
 public class ServiceContextTest {
     private ServiceContext context;
@@ -32,5 +33,7 @@ public class ServiceContextTest {
         messageService.sendMessage("aaa", LocalDate.now(), user);
         assert (messageService.readMessagesFrom(user).size() == 1);
         System.out.println(messageService);
+
+        birthdayService.sendBirthdayMessages(Arrays.asList(user), LocalDate.now());
     }
 }

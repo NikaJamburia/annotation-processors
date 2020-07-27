@@ -2,16 +2,21 @@ package com.nika.annotations.framework.context;
 
 import com.nika.annotations.framework.annotation.Lazy;
 import com.nika.annotations.framework.annotation.Service;
+import com.nika.annotations.framework.event.LazyServiceActivated;
+import com.nika.annotations.framework.event.LazyServiceActivatedListener;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
 
-public class ServiceContext {
+public class ServiceContext implements LazyServiceActivatedListener {
     private Map<String, Object> services = new HashMap<>();
 
     public ServiceContext(String... names) {
@@ -19,6 +24,7 @@ public class ServiceContext {
             loadService(name);
         }
         injectServices();
+        LazyServiceActivated.subscribe(this);
     }
 
     public <T> T getService(String name) {
@@ -63,22 +69,36 @@ public class ServiceContext {
 
     private void injectServices() {
         services.values().forEach(service -> {
-            Arrays.stream(service.getClass().getDeclaredFields()).forEach( field -> {
-                Service serviceAnnotation = field.getAnnotation(Service.class);
-                if (serviceAnnotation != null) {
-                    try {
-                        Method setter = service.getClass().getMethod("set" + capitalize(field.getName()), field.getType());
-                        setter.invoke(service, services.get(serviceAnnotation.name()));
-                    } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-                        e.printStackTrace();
-                    }
-                }
+            getInjectedFields(service).forEach(field -> {
+                findAndInvokeSetterForField(service, field);
             });
         });
     }
 
+    private void findAndInvokeSetterForField(Object service, Field field) {
+        try {
+            Method setter = service.getClass().getMethod("set" + capitalize(field.getName()), field.getType());
+            setter.invoke(service, services.get(field.getAnnotation(Service.class).name()));
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private Set<Field> getInjectedFields(Object service) {
+        return Arrays.stream(service.getClass().getDeclaredFields())
+                .filter(field -> field.getAnnotation(Service.class) != null)
+                .collect(Collectors.toSet());
+    }
+
     private String getServiceName(Class<?> clazz) {
         return clazz.getAnnotation(Service.class).name();
+    }
+
+    @Override
+    public void lazyServiceActivated(Object service) {
+        getInjectedFields(service).forEach(field -> {
+            findAndInvokeSetterForField(service, field);
+        });
     }
 
 }
