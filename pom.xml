@@ -67,9 +67,9 @@
               <compilerArgument>-proc:none</compilerArgument>
               <includes>
                 <include>com/nika/annotations/framework/processor/JpaEmbeddedProcessor.java</include>
-                <include>com/nika/annotations/framework/processor/JpaProcessor.java</include>
                 <include>com/nika/annotations/framework/processor/LazyAnnotationProcessor.java</include>
                 <include>com/nika/annotations/framework/processor/InjectedServiceAnnotationProcessor.java</include>
+                <include>com/nika/annotations/framework/processor/ServiceAnnotationProcessor.java</include>
               </includes>
             </configuration>
           </execution>

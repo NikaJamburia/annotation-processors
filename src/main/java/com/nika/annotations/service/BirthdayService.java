@@ -11,7 +11,7 @@ import java.util.List;
 @Lazy
 @Service(name = "birthday")
 public class BirthdayService {
-    // TODO: Figure out how to inject fields from context to lazy services
+
     @Service(name = "message")
     private MessageService messageService;
 

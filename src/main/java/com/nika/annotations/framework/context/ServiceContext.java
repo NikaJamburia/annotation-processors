@@ -1,17 +1,19 @@
 package com.nika.annotations.framework.context;
 
+import com.nika.annotations.framework.ContextInstantiationException;
 import com.nika.annotations.framework.annotation.Lazy;
 import com.nika.annotations.framework.annotation.Service;
 import com.nika.annotations.framework.event.LazyServiceActivated;
 import com.nika.annotations.framework.event.LazyServiceActivatedListener;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
@@ -25,6 +27,19 @@ public class ServiceContext implements LazyServiceActivatedListener {
         }
         injectServices();
         LazyServiceActivated.subscribe(this);
+    }
+
+    private List<String> findServices() throws IOException {
+        InputStream servicesStream = this.getClass().getClassLoader().getResourceAsStream("resources/service-list.txt");
+        assert servicesStream != null;
+        BufferedReader reader = new BufferedReader(new InputStreamReader(servicesStream));
+
+        List<String> services = new ArrayList<>();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            services.add(line);
+        }
+        return services;
     }
 
     public <T> T getService(String name) {

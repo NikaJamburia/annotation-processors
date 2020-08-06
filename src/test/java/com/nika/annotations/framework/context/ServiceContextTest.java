@@ -19,10 +19,11 @@ public class ServiceContextTest {
                 "com.nika.annotations.service.MessageService",
                 "com.nika.annotations.service.BirthdayService"
         );
+
     }
 
     @Test
-    public void shouldCorrectlyCreateServices() throws Exception {
+    public void shouldCorrectlyCreateServices() {
         MessageService messageService = context.getService("message");
         BirthdayService birthdayService = context.getService("birthday");
 

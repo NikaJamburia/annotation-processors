@@ -10,6 +10,7 @@ import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
 import javax.lang.model.util.ElementFilter;
+import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -34,54 +35,65 @@ public class LazyAnnotationProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnvironment) {
         Collection<? extends Element> annotatedElements = roundEnvironment.getElementsAnnotatedWith(Lazy.class);
-        annotatedElements.forEach(this::generateLazyClass);
+        annotatedElements
+                .forEach(this::generateLazyClass);
         return false;
     }
 
     private void generateLazyClass(Element lazyClass) {
-        PackageElement packageElement = (PackageElement) lazyClass.getEnclosingElement();
+        if (lazyClass.getKind() == ElementKind.CLASS || lazyClass.getKind() == ElementKind.FIELD) {
+            PackageElement packageElement = (PackageElement) lazyClass.getEnclosingElement();
 
-        String packageName = packageElement.getQualifiedName().toString();
-        String serviceName = lazyClass.getSimpleName().toString();
-        String methods = getMethods(lazyClass);
+            String packageName = packageElement.getQualifiedName().toString();
+            String serviceName = lazyClass.getSimpleName().toString();
+            String methods = getMethods(lazyClass);
 
-        Template lazyServiceTemplate = getTemplateFrom("template/lazyService.vm");
-        VelocityContext lazyServiceContext = lazyServiceContext(packageName, serviceName, methods);
+            Template lazyServiceTemplate = getTemplateFrom("template/lazyService.vm");
+            VelocityContext lazyServiceContext = lazyServiceContext(packageName, serviceName, methods);
 
+            createSourceForLazyService(packageName, serviceName, lazyServiceTemplate, lazyServiceContext);
+        } else {
+            messager.printMessage(
+                    Diagnostic.Kind.ERROR,
+                    "Service annotation can be only on classes or fields",
+                    lazyClass
+            );
+        }
+    }
+
+    private void createSourceForLazyService(String packageName, String serviceName, Template lazyServiceTemplate, VelocityContext lazyServiceContext) {
         try {
             JavaFileObject file = filer.createSourceFile(packageName + ".Lazy" + serviceName);
             Writer writer = file.openWriter();
             lazyServiceTemplate.merge(lazyServiceContext, writer);
             writer.close();
+        } catch (IOException e) {
+            throw new IllegalStateException("Error in framework: " + e.getMessage());
         }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-
     }
 
     private String getMethods(Element lazyClass) {
         StringBuilder methods = new StringBuilder();
 
         ElementFilter.methodsIn(lazyClass.getEnclosedElements())
-            .forEach(method -> {
-                if (isPublic(method)) {
-                    String methodName = method.getSimpleName().toString();
-                    String params = getMethodSignatureParams(method.getParameters());
-                    String paramsWithoutTypes = getParamNames(method.getParameters());
-                    String returnType = method.getReturnType().toString();
+                .forEach(method -> {
+                    if (isPublic(method)) {
+                        String methodName = method.getSimpleName().toString();
+                        String params = getMethodSignatureParams(method.getParameters());
+                        String paramsWithoutTypes = getParamNames(method.getParameters());
+                        String returnType = method.getReturnType().toString();
 
-                    String templatePath = getMethodTemplatePath(returnType);
+                        String templatePath = getMethodTemplatePath(returnType);
 
-                    Template methodTemplate = getTemplateFrom(templatePath);
-                    VelocityContext methodContext = methodContext(methodName, params, paramsWithoutTypes, returnType);
+                        Template methodTemplate = getTemplateFrom(templatePath);
+                        VelocityContext methodContext = methodContext(methodName, params, paramsWithoutTypes, returnType);
 
-                    StringWriter result = new StringWriter();
-                    methodTemplate.merge(methodContext, result);
-                    methods.append(result.toString());
-                    methods.append("\n");
-                }
-            });
+                        StringWriter result = new StringWriter();
+                        methodTemplate.merge(methodContext, result);
+                        methods.append(result.toString());
+                        methods.append("\n");
+                    }
+                });
 
         return methods.toString();
     }
