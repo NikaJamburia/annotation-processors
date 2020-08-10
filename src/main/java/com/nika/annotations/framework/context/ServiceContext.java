@@ -1,10 +1,10 @@
 package com.nika.annotations.framework.context;
 
-import com.nika.annotations.framework.ContextInstantiationException;
 import com.nika.annotations.framework.annotation.Lazy;
 import com.nika.annotations.framework.annotation.Service;
 import com.nika.annotations.framework.event.LazyServiceActivated;
 import com.nika.annotations.framework.event.LazyServiceActivatedListener;
+import java.lang.String;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -20,16 +20,23 @@ import static org.apache.commons.lang.StringUtils.capitalize;
 
 public class ServiceContext implements LazyServiceActivatedListener {
     private Map<String, Object> services = new HashMap<>();
+    public ServiceContext instance;
 
     public ServiceContext(String... names) {
-        for (String name : names) {
-            loadService(name);
-        }
+        init(Arrays.asList(names));
+    }
+
+    public ServiceContext() throws IOException {
+        init(locateServices());
+    }
+
+    private void init(List<String> serviceNames) {
+        serviceNames.forEach(this::loadService);
         injectServices();
         LazyServiceActivated.subscribe(this);
     }
 
-    private List<String> findServices() throws IOException {
+    private List<String> locateServices() throws IOException {
         InputStream servicesStream = this.getClass().getClassLoader().getResourceAsStream("resources/service-list.txt");
         assert servicesStream != null;
         BufferedReader reader = new BufferedReader(new InputStreamReader(servicesStream));
@@ -39,6 +46,7 @@ public class ServiceContext implements LazyServiceActivatedListener {
         while ((line = reader.readLine()) != null) {
             services.add(line);
         }
+
         return services;
     }
 

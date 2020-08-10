@@ -6,6 +6,7 @@ import com.nika.annotations.service.MessageService;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.Arrays;
 
@@ -14,12 +15,8 @@ public class ServiceContextTest {
     private User user = new User("nika", "jamburia", LocalDate.parse("1998-12-24"));
 
     @Before
-    public void initContext() {
-        context = new ServiceContext(
-                "com.nika.annotations.service.MessageService",
-                "com.nika.annotations.service.BirthdayService"
-        );
-
+    public void initContext() throws IOException {
+        context = new ServiceContext();
     }
 
     @Test
